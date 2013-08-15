@@ -1,0 +1,70 @@
+<!doctype html>
+<script src="../../libs/jquery/jquery.js"></script>
+<script src="browser_action.js"></script>
+<link rel="stylesheet" href="../../libs/bootstrap/css/bootstrap.min.css">
+<!--<link rel="stylesheet" href="../../libs/bootstrap3/css/bootstrap.min.css">-->
+<!--<link href='http://fonts.googleapis.com/css?family=Oxygen' rel='stylesheet' type='text/css'>-->
+<style type="text/css">
+	#mainPopup {
+		/*background: hsl(113, 27%, 84%);*/
+		/*border: 10px solid hsl(147, 43%, 83%);*/
+		background: hsl(238, 100%, 96%);
+		border: 10px solid hsl(245, 39%, 95%);
+		height: 102px;
+		width: 425px;
+	}
+
+	section {
+		display: none;
+	}
+
+	h1 {
+		margin: 5px auto;
+		font-size: 1.5em;
+		font-family: cursive;
+	}
+
+	span{
+		font-family: cursive;
+		display: inline-block;
+		margin: 0 0 0 3px;
+	}
+	img {
+		width: 128px;
+		position: absolute;
+		right: 10px;
+		top: -7px;
+	}
+</style>
+<body>
+<div id="mainPopup">
+	<section id="reserved">
+		<h1>The Restroom is Reserved</h1>
+		<span>
+			You have 3 minutes to claim it...
+		</span>
+		<img src="../../icons/go.png" style="top:-2px;"/>
+	</section>
+	<section id="reserving">
+		<h1>Reserving</h1>
+		<span>
+			Checking if it could be reserved...
+		</span>
+		<img src="../../icons/WaitStat.png" style="top:3px;width:120px" />
+	</section>
+	<section id="notifying">
+		<h1>The Restroom is Occupied</h1>
+		<span>
+			You will be notified when it frees up
+		</span>
+		<img src="../../icons/icon128.png" />
+	</section>
+	<section id="unreservable">
+		<h1>Restroom can't be reserved</h1>
+		<span>
+			The restroom had been reserved already<br/>(be quicker next time).
+		</span>
+		<img src="../../icons/reserved.png" />
+	</section>
+</div>
+</body>
