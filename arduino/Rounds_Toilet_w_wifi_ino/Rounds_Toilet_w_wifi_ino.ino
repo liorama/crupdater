@@ -33,7 +33,7 @@ void setup() {
 	pinMode (DOOR, INPUT);
 	pinMode (SD_CARD, OUTPUT);
 	Serial.begin(9600);
-	while(!Serial);
+	// while(!Serial);
 	setPinsMode(redPins, OUTPUT);
 	setPinsMode(greenPins, OUTPUT);
 	setPinsMode(bluePins, OUTPUT);
@@ -44,7 +44,12 @@ void setup() {
 	// check for the presence of the shield:
 	if (WiFi.status() == WL_NO_SHIELD) {
 		Serial.println("WiFi shield not present"); 
-		while(true);
+		while(WiFi.status() == WL_NO_SHIELD){
+			setLedsColor(255,0,0);
+			delay(500);
+			setLedsColor(0,0,0);
+			delay(400);
+		};
 	} 
 	// Try connecting until it works:
 	setLedsColor(255,0, 225); //turn pink on to indicate wifi shield ok
@@ -54,23 +59,22 @@ void setup() {
 		status = WiFi.begin(ssid, pass);
 		delay(1000);
 	} 
-	// When connected print Network Info
-	printNetworkInfo();
-	// setLedsColor(255,255,10);//turn yellow on to indicate connected to wifi but not to server
-	// connectToServer();
-	setLedsColor(0,255,0);//turn green on to indicate connected to wifi but not to server
+	// printNetworkInfo(); // When connected print Network Info
+	setLedsColor(0,255,0); //turn green on to indicate connected to wifi but not to server
 }
 
 void connectToServer(){
-	Serial.print("Connecting to server...");
+	Serial.print("Connecting to server.");
 	while(!client.connect(serverAddress, serverPort)){
-		delay(1000);
+		Serial.print(".");
+		delay(50);
 	}
 	Serial.println("Connected!");
 }
 
 void loop () {
 	int door  = digitalRead(DOOR);
+	delay(2500);
 	int motion = digitalRead(MOTION);
 	if (door != previous_door_status || (motion != previous_motion_status && motion == HIGH)) {
 		notify(door, motion);
@@ -79,39 +83,53 @@ void loop () {
 		previous_motion_status = motion;
 		previous_door_status = door;
 	}
-	//  delay(100);
 }
 
 
 void notify(int door, int motion ) {
-	char queryString[29] ;
-	sprintf(queryString, "doorSensor=%d&motionSensor=%d" , door, motion);
+	char queryString[11] ;
+	client.flush();
+	client.stop();
+	sprintf(queryString, "ds=%d&ms=%d&t=d%" , door, motion, millis());
 	Serial.println("-----");
 	while(!client.connected()){
 		connectToServer();
-		// setLedsColor(255,255,0);//turn green on to indicate connected to wifi but not to server
 	}
-	Serial.println("Making a POST request to update sensors...");
-	String outBuffer = "POST /update/sensors HTTP/1.1\r\n"; 
-	outBuffer +=  "Host: " + String(serverAddress) + "\r\n";
-	outBuffer +=  "Connection: Keep-Alive\r\n";
-	outBuffer +=  "Content-Type: application/x-www-form-urlencoded;\r\n";
-	outBuffer +=  "Content-Length: " + String(strlen(queryString)) + "\r\n";
-	outBuffer +=  "\r\n" + String(queryString);
-	Serial.println(outBuffer);
+	Serial.println("Making a request to update sensors...");
+	// String outBuffer = "POST / HTTP/1.1\r\n"; 
+	String outBuffer = "GET /?"  + String(queryString) + " HTTP/1.1\r\n";  // Using GET cause it's faster here, should be switched to post
+	// outBuffer +=  "Host: " + String(serverAddress) + "\r\n";
+	outBuffer +=  "Connection: close\r\n";
+	// outBuffer +=  "Content-Type: application/x-www-form-urlencoded;\r\n";
+	// outBuffer +=  "Content-Length: " + String(strlen(queryString)) + "\r\n";
+	// outBuffer +=  "\r\n" + String(queryString);
 	client.println(outBuffer);
-	readResponse();
+	client.println();
+	Serial.println(outBuffer);
+	// while(client.connected()){
+		// if(client.available()){
+			// readResponse();
+		// }
+	// }
 	Serial.println("-----");
 }
 
-void readResponse(){
-	Serial.println("Available to read: " + String(client.available()));
-	while(client.available() > 0) {
-		char c = client.read();
-		Serial.print("Read: " + c);
-	}
-	client.stop();
- }
+
+// this was meant for reading the server response for updating status and checking for if the request had errors which caused the server not to be updated
+// void readResponse(){
+	// Serial.print("Read:");
+
+	// String response;
+	// char charRead = NULL;
+	// while (client.available()) {
+		// charRead = client.read();
+		// if(charRead != (char) - 1) {
+			// response += charRead;
+		// }
+		// delay(150);
+	// }
+	// Serial.println(response);
+ // }
 
 String printNetworkInfo () {
 	byte mac[6];
@@ -126,17 +144,6 @@ String printNetworkInfo () {
 	Serial.println(macAddress);
 	return macAddress;
 }
-
-// void ledBlink (int ledPin, int times) {
-	 // Serial.println("Blinking " + String(times) + " times");
-	// for (int i = 0; i < times; i++){
-		// Serial.println(i);
-		// digitalWrite(LED, HIGH);
-		// delay(500);
-		// digitalWrite(LED, LOW);
-		// delay(600);
-	// }
-// }
 
 void setStatus(int status){
 	switch(status){

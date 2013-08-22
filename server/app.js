@@ -22,6 +22,8 @@ app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
 
 
+
+
 server.listen(app.get('port'), function () {
 	console.log('Express server listening on port ' + app.get('port'));
 });
@@ -82,7 +84,7 @@ global.refreshStatus = function () {
 
 /****** HTTP routes ********/
 
-app.post('/update/sensors', api.updateSensors);
+app.get('/', api.updateSensors);
 
 app.post('/reserve', api.reserve);
 

@@ -1,13 +1,29 @@
 /*
- * GET home page.
+ * API handlers.
  */
-
+var REQUEST_FIELDS = {
+	door: "ds",
+	motion: "ms",
+	timer: "t"
+};
 
 exports.updateSensors = function (req, res) {
-	sensorStatus.motion = (req.body.motionSensor === "1");
-	sensorStatus.door = (req.body.doorSensor === "1");
-	console.log("POST Data", req.body);
-	res.send(refreshStatus());
+	var data = req.query;
+	console.log("Received request data:", data);
+	if (data[REQUEST_FIELDS.motion] === undefined || data[REQUEST_FIELDS.door] === undefined){
+		return res.send(400, "Bad Request");
+	}
+	sensorStatus.motion = (data[REQUEST_FIELDS.motion] === "1");
+	sensorStatus.door = (data[REQUEST_FIELDS.door] === "1");
+	var response = refreshStatus();
+	console.log("Sending", response);
+	res.useChunkedEncodingByDefault = false;
+	res.set({
+		"Transfer-Encoding": "none",
+		"Connection": "close",
+		"Content-Type": "text/plain"
+	});
+	return res.send(response);
 };
 
 exports.getStatus = function (req, res) {
