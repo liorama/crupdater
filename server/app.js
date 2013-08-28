@@ -1,7 +1,7 @@
 var express = require('express'),
 	app = express(),
 	server = require('http').createServer(app),
-	sockets = require('socket.io').listen(server),
+	sockets = require('socket.io').listen(server, { log: false }),
 	api = require('./routes/api'),
 	path = require('path');
 
@@ -20,7 +20,6 @@ app.use(express.cookieParser('your secret here'));
 app.use(app.router);
 //app.use(require('less-middleware')({ src: __dirname + '/public' }));
 app.use(express.static(path.join(__dirname, 'public')));
-
 
 
 

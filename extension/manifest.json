@@ -1,6 +1,6 @@
 {
 	"name": "Toilet Updater",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"manifest_version": 2,
 	"description": "Indicates what is the status of the Rounds toilet room.",
 	"homepage_url": "http://office.gixoo.com:3000",
@@ -28,6 +28,7 @@
 		"*://*/*",
 		"notifications"
 	],
+	"update_url": "http://office.gixoo.com:3000/extension_update.xml",
 	"config": {
 		"serverUrls": {
 			"base": "http://office.gixoo.com:3000",

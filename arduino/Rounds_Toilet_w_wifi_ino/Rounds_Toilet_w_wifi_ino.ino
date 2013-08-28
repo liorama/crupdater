@@ -13,8 +13,8 @@ int bluePins[] = {6};
 //const String updatePath = "/update/sensors";
 
 ////// network setup ///////
-char ssid[] = "Rounds-4";     //  Rounds network SSID (name) 
-char pass[] = "igetaround4";    //  network password
+char ssid[] = "Rounds-3";     //  Rounds network SSID (name) 
+char pass[] = "igetaround3";    //  network password
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 char serverAddress[] = "office.gixoo.com";
 int serverPort = 3000;
@@ -28,22 +28,23 @@ int previous_door_status = -1;
 int previous_motion_status= -1;
 
 void setup() {
-	// pinMode (LED, OUTPUT);
 	pinMode (MOTION, INPUT);
 	pinMode (DOOR, INPUT);
 	pinMode (SD_CARD, OUTPUT);
-	Serial.begin(9600);
-	// while(!Serial);
+	if (Serial){
+		Serial.begin(9600);
+	}
+	// while(!Serial && Serial);
 	setPinsMode(redPins, OUTPUT);
 	setPinsMode(greenPins, OUTPUT);
 	setPinsMode(bluePins, OUTPUT);
 	setLedsColor(0,0,0);
 	digitalWrite(SD_CARD, HIGH);  // Disable SD Card slot on the wifi shield(As it's not in use. Needed by the shield's library)
-	Serial.println("I'm up!!!");
+	Serial && Serial.println("I'm up!!!");
 	delay(1000); // I found this helps the arduino find the shield more often...
 	// check for the presence of the shield:
 	if (WiFi.status() == WL_NO_SHIELD) {
-		Serial.println("WiFi shield not present"); 
+		Serial && Serial.println("WiFi shield not present"); 
 		while(WiFi.status() == WL_NO_SHIELD){
 			setLedsColor(255,0,0);
 			delay(500);
@@ -54,28 +55,29 @@ void setup() {
 	// Try connecting until it works:
 	setLedsColor(255,0, 225); //turn pink on to indicate wifi shield ok
 	while (status != WL_CONNECTED) { 
-		Serial.print("Attempting to connect to SSID: ");
-		Serial.println(ssid);
+		Serial && Serial.print("Attempting to connect to SSID: ");
+		Serial && Serial.println(ssid);
 		status = WiFi.begin(ssid, pass);
 		delay(1000);
 	} 
 	// printNetworkInfo(); // When connected print Network Info
-	setLedsColor(0,255,0); //turn green on to indicate connected to wifi but not to server
+	setLedsColor(0,255,0); //turn green on to indicate connected to wifi
 }
 
 void connectToServer(){
-	Serial.print("Connecting to server.");
+	Serial && Serial.print("Connecting to server.");
 	while(!client.connect(serverAddress, serverPort)){
-		Serial.print(".");
+		Serial && Serial.print(".");
 		delay(50);
 	}
-	Serial.println("Connected!");
+	Serial && Serial.println("Connected!");
 }
 
 void loop () {
 	int door  = digitalRead(DOOR);
-	delay(2500);
+	delay(2500); // For a situation that both sensors get triggered when a person steps out of the room (this will prevent the status changing to occupied)
 	int motion = digitalRead(MOTION);
+	Serial && Serial.println("Door: " + String(door) + " Motion: " + String(motion));
 	if (door != previous_door_status || (motion != previous_motion_status && motion == HIGH)) {
 		notify(door, motion);
 		int status = isOccupide(door, motion);
@@ -87,15 +89,13 @@ void loop () {
 
 
 void notify(int door, int motion ) {
-	char queryString[11] ;
-	client.flush();
-	client.stop();
-	sprintf(queryString, "ds=%d&ms=%d&t=d%" , door, motion, millis());
-	Serial.println("-----");
+	char queryString[19] ;
+	sprintf(queryString, "d=%d&m=%d&t=%lu" , door, motion, millis());
+	Serial && Serial.println("-----");
 	while(!client.connected()){
 		connectToServer();
 	}
-	Serial.println("Making a request to update sensors...");
+	Serial && Serial.println("Making a request to update sensors...");
 	// String outBuffer = "POST / HTTP/1.1\r\n"; 
 	String outBuffer = "GET /?"  + String(queryString) + " HTTP/1.1\r\n";  // Using GET cause it's faster here, should be switched to post
 	// outBuffer +=  "Host: " + String(serverAddress) + "\r\n";
@@ -105,19 +105,22 @@ void notify(int door, int motion ) {
 	// outBuffer +=  "\r\n" + String(queryString);
 	client.println(outBuffer);
 	client.println();
-	Serial.println(outBuffer);
+	Serial && Serial.println(outBuffer);
 	// while(client.connected()){
 		// if(client.available()){
 			// readResponse();
 		// }
 	// }
-	Serial.println("-----");
+	Serial && Serial.println("-----");
+	client.flush();
+	client.stop();
+
 }
 
 
 // this was meant for reading the server response for updating status and checking for if the request had errors which caused the server not to be updated
 // void readResponse(){
-	// Serial.print("Read:");
+	// Serial && Serial.print("Read:");
 
 	// String response;
 	// char charRead = NULL;
@@ -128,20 +131,20 @@ void notify(int door, int motion ) {
 		// }
 		// delay(150);
 	// }
-	// Serial.println(response);
+	// Serial && Serial.println(response);
  // }
 
 String printNetworkInfo () {
 	byte mac[6];
 	byte encryption = WiFi.encryptionType();
 	IPAddress ip = WiFi.localIP();
-	Serial.print("Wifi Connected! \nEncryption Type:");
-	Serial.println(encryption,HEX);
-	Serial.print("ip Address is:");
-	Serial.println(ip);
+	Serial && Serial.print("Wifi Connected! \nEncryption Type:");
+	Serial && Serial.println(encryption,HEX);
+	Serial && Serial.print("ip Address is:");
+	Serial && Serial.println(ip);
 	WiFi.macAddress(mac);
 	String macAddress = "MAC: " + String(mac[5],HEX) + ":" + String(mac[4],HEX) +  ":" +String(mac[3],HEX) +  ":" +String(mac[2],HEX) +  ":" +String(mac[2],HEX) +  ":" +String(mac[1],HEX) +  ":" +String(mac[0],HEX);
-	Serial.println(macAddress);
+	Serial && Serial.println(macAddress);
 	return macAddress;
 }
 
@@ -170,7 +173,7 @@ void setPinsValue(int pins[], int value){
 	int i;
 	int l;
 	for(i = 0, l = sizeof(pins) / sizeof(*pins); i < l; i++){
-		// Serial.println("Setting pin " + String(pins[i]) + " to value " + String(value));
+		// Serial && Serial.println("Setting pin " + String(pins[i]) + " to value " + String(value));
 		analogWrite(pins[i], value);
 	} 
 }
@@ -179,7 +182,7 @@ void setPinsMode(int pins[], int value){
 	int i;
 	int l;
 	for(i = 0, l = sizeof(pins) / sizeof(*pins); i < l; i++){
-		// Serial.println("Setting pin " + String(pins[i]) + " to mode " + String(value));
+		// Serial && Serial.println("Setting pin " + String(pins[i]) + " to mode " + String(value));
 		pinMode(pins[i], value);
 	} 
 }

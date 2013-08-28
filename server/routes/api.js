@@ -2,21 +2,20 @@
  * API handlers.
  */
 var REQUEST_FIELDS = {
-	door: "ds",
-	motion: "ms",
+	door: "d",
+	motion: "m",
 	timer: "t"
 };
 
 exports.updateSensors = function (req, res) {
 	var data = req.query;
-	console.log("Received request data:", data);
+	console.log("Received request data:", data, "At ", new Date().toLocaleTimeString());
 	if (data[REQUEST_FIELDS.motion] === undefined || data[REQUEST_FIELDS.door] === undefined){
 		return res.send(400, "Bad Request");
 	}
 	sensorStatus.motion = (data[REQUEST_FIELDS.motion] === "1");
 	sensorStatus.door = (data[REQUEST_FIELDS.door] === "1");
 	var response = refreshStatus();
-	console.log("Sending", response);
 	res.useChunkedEncodingByDefault = false;
 	res.set({
 		"Transfer-Encoding": "none",
