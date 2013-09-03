@@ -75,7 +75,7 @@ void connectToServer(){
 
 void loop () {
 	int door  = digitalRead(DOOR);
-	delay(2500); // For a situation that both sensors get triggered when a person steps out of the room (this will prevent the status changing to occupied)
+	delay(2300); // For a situation that both sensors get triggered when a person steps out of the room (this will prevent the status changing to occupied)
 	int motion = digitalRead(MOTION);
 	Serial && Serial.println("Door: " + String(door) + " Motion: " + String(motion));
 	if (door != previous_door_status || (motion != previous_motion_status && motion == HIGH)) {
